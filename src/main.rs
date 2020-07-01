@@ -29,35 +29,37 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            // middleware logger
+            
+            .wrap(BearerTokenMiddlewareInit)
             // FnMut(ServiceRequest, &mut T::Service) -> R + Clone,
-            .wrap_fn(|req, srv| {
-                println!("verify token");
-                let head = req.head();
-                // head(&self) -> &RequestHead -> HeaderMap
-                let user_auth = head.headers
-                    // get<N>(&self, name: N) -> Option<&HeaderValue>
-                    .get("Authorization")
-                    // actix_web::http::header::HeaderValue -> Result<&str, Error>
-                    .map(|header| header.to_str().ok().clone())
-                    // .ok() // -> Option<&str>
-                    .flatten()
-                    .map(verify_token) // -> Option<UserAuth>
-                    .unwrap();
-                    // .unwrap_or(UserAuth::None);
+            // .wrap_fn(|req, srv| {
+            //     println!("verify token");
+            //     let head = req.head();
+            //     // head(&self) -> &RequestHead -> HeaderMap
+            //     let user_auth = head.headers
+            //         // get<N>(&self, name: N) -> Option<&HeaderValue>
+            //         .get("Authorization")
+            //         // actix_web::http::header::HeaderValue -> Result<&str, Error>
+            //         .map(|header| header.to_str().ok().clone())
+            //         // .ok() // -> Option<&str>
+            //         .flatten()
+            //         .map(verify_token) // -> Option<UserAuth>
+            //         .unwrap();
+            //         // .unwrap_or(UserAuth::None);
 
                 
             
-                // save in request
-                // extensions_mut(&self) -> RefMut<Extensions>
-                head.extensions_mut().insert(user_auth);
+            //     // save in request
+            //     // extensions_mut(&self) -> RefMut<Extensions>
+            //     head.extensions_mut().insert(user_auth);
                 
-                // call next service
-                let fut = srv.call(req);
-                async {
-                    Ok(fut.await?)
-                }
-            })
+            //     // call next service
+            //     let fut = srv.call(req);
+            //     async {
+            //         Ok(fut.await?)
+            //     }
+            // })
+            // middleware logger
             .wrap(Logger::default())
             .configure(config_app)
             .route("/hello", web::get().to(|| HttpResponse::Ok().body("hello, the server is up and running ~")))
